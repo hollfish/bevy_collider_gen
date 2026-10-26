@@ -2,21 +2,17 @@
 //! Demonstrates regenerating a `DynamicCollider` when a `TextureAtlas` frame changes.
 //!
 //! Physics backend is selected by feature flag:
-//! - default / `rapier2d`: `bevy_rapier2d`
-//! - `avian2d`: avian2d (wins if both features are enabled)
+//! - default / `avian2d`: avian2d (wins if both features are enabled)
 //!
 //! Controls: ← → (previous / next atlas frame)
 
-#[cfg(not(any(feature = "avian2d", feature = "rapier2d")))]
-compile_error!("Enable the `avian2d` or `rapier2d` feature to run this example");
-
+#[cfg(not(any(feature = "avian2d")))]
+// compile_error!("Enable the `avian2d`  feature to run this example");
 #[cfg(feature = "avian2d")]
 use avian2d::prelude::*;
 use bevy::{asset::LoadState, prelude::*};
 use bevy_collider_gen::plugin::{DynamicCollider, DynamicColliderPlugin};
 use bevy_collider_gen::prelude::*;
-#[cfg(all(feature = "rapier2d", not(feature = "avian2d")))]
-use bevy_rapier2d::prelude::*;
 use indoc::indoc;
 
 #[derive(Component)]
@@ -59,22 +55,6 @@ fn main() {
             PhysicsPlugins::default(),
             #[cfg(debug_assertions)]
             PhysicsDebugPlugin,
-            DynamicColliderPlugin::<Collider>::new(),
-        ));
-    }
-
-    #[cfg(all(feature = "rapier2d", not(feature = "avian2d")))]
-    {
-        app.add_plugins((
-            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.),
-            #[cfg(debug_assertions)]
-            RapierDebugRenderPlugin {
-                style: DebugRenderStyle {
-                    collider_fixed_color: [360., 100., 100., 1.],
-                    ..default()
-                },
-                ..default()
-            },
             DynamicColliderPlugin::<Collider>::new(),
         ));
     }
@@ -154,9 +134,6 @@ fn atlas_spawn(
             DebugRender::default().with_collider_color(css::VIOLET.into()),
         ));
     }
-
-    #[cfg(all(feature = "rapier2d", not(feature = "avian2d")))]
-    commands.spawn((AtlasSprite, collider, RigidBody::Fixed, sprite));
 }
 
 fn atlas_control(
@@ -188,11 +165,8 @@ fn camera_spawn(mut commands: Commands) {
 }
 
 fn controls_text_spawn(mut commands: Commands, game_assets: Res<GameAsset>) {
-    #[cfg(feature = "avian2d")]
+    // #[cfg(feature = "avian2d")]
     let backend = "avian2d";
-    #[cfg(all(feature = "rapier2d", not(feature = "avian2d")))]
-    let backend = "rapier2d";
-
     let tips_text = format!(
         indoc! {"
             texture atlas collider ({backend})
@@ -213,8 +187,8 @@ fn controls_text_spawn(mut commands: Commands, game_assets: Res<GameAsset>) {
             parent.spawn((
                 Text(tips_text),
                 TextFont {
-                    font: game_assets.font_handle.clone(),
-                    font_size: 20.,
+                    font: game_assets.font_handle.clone().into(),
+                    font_size: FontSize::Px(20.),
                     ..default()
                 },
                 TextColor(Color::srgb(0.9, 0.9, 0.9)),

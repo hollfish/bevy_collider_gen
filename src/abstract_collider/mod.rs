@@ -8,8 +8,6 @@ use AbstractCollider::{ConvexHull, ConvexPolyline, Heightfield, Polyline};
 
 #[cfg(feature = "avian2d")]
 mod avian2d;
-#[cfg(feature = "rapier2d")]
-mod rapier2d;
 
 mod builder;
 

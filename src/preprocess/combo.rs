@@ -3,11 +3,7 @@ use crate::plugin::DynamicCollider;
 #[cfg(feature = "preprocess")]
 use crate::preprocess::asset_transform::ColliderProcessError;
 use crate::{abstract_collider::AbstractCollider, collider_type::ColliderType};
-#[cfg(all(feature = "avian2d", not(feature = "rapier2d")))]
-use avian2d::prelude::Collider;
 use bevy::{image::ImageLoaderSettings, prelude::*};
-#[cfg(all(feature = "rapier2d", not(feature = "avian2d")))]
-use bevy_rapier2d::prelude::Collider;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, PartialEq, Reflect, Clone, Asset)]
@@ -109,53 +105,7 @@ impl Default for CachedCollider {
 }
 
 impl CachedCollider {
-    #[cfg(all(feature = "rapier2d", not(feature = "avian2d")))]
-    /// Clones this [`CachedCollider`] into a `bevy_rapier` [`Collider`].
-    ///
-    /// Include an `atlas_index` if this is an atlas.
-    ///
-    /// # Errors
-    /// Returns an error if the collider contains invalid data,
-    /// or cannot convert to the underlying physics collider type.
-    pub fn to_rapier(
-        &self,
-        atlas_index: Option<usize>,
-    ) -> Result<Vec<Collider>, ColliderProcessError> {
-        let failed =
-            ColliderProcessError("failed to convert AbstractCollider into Rapier Collider".into());
-        Ok(match &self {
-            CachedCollider::Single(abstract_collider) => {
-                vec![abstract_collider.clone().to_rapier().ok_or(failed)?]
-            }
-            CachedCollider::Multiple(abstract_colliders) => {
-                let mut colliders = vec![];
-                for (abstract_collider, _) in abstract_colliders.clone() {
-                    colliders.push(abstract_collider.to_rapier().ok_or(failed.clone())?);
-                }
-                colliders
-            }
-            CachedCollider::Atlas(collider_atlas) => {
-                if let Some(index) = atlas_index {
-                    vec![collider_atlas
-                        .0
-                        .get(index)
-                        .cloned()
-                        .flatten()
-                        .ok_or(ColliderProcessError(
-                            "index out of bounds for collider atlas".into(),
-                        ))?
-                        .to_rapier()
-                        .ok_or(failed)?]
-                } else {
-                    return Err(ColliderProcessError(
-                        "failed to provide atlas_index for collider atlas".into(),
-                    ));
-                }
-            }
-        })
-    }
-
-    #[cfg(all(feature = "avian2d", not(feature = "rapier2d")))]
+    #[cfg(all(feature = "avian2d"))]
     /// Clones this [`CachedCollider`] into an `avian` [`Collider`].
     ///
     /// Include an `atlas_index` if this is an atlas.
